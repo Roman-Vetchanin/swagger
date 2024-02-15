@@ -2,7 +2,6 @@ package com.hogwarts.school.service;
 
 import com.hogwarts.school.model.Faculty;
 import com.hogwarts.school.repositories.FacultyRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -18,7 +17,7 @@ public class FacultyService {
     }
 
 
-    public Faculty addFaculty(Faculty faculty) {
+    public Faculty crateFaculty(Faculty faculty) {
         return facultyRepository.save(faculty);
     }
 
