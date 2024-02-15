@@ -1,6 +1,8 @@
 package com.hogwarts.school.service;
 
 import com.hogwarts.school.model.Student;
+import com.hogwarts.school.repositories.StudentRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -8,39 +10,36 @@ import java.util.stream.Collectors;
 
 @Service
 public class StudentService {
-    private final Map<Long, Student> studentMap = new HashMap<>();
-    private Long generateId = 1L;
 
-    public Student addStudent(Student student) {
-        student.setId(generateId);
-        studentMap.put(student.getId(), student);
-        generateId++;
-        return student;
+    private final StudentRepository studentRepository;
+
+    public StudentService(StudentRepository studentRepository) {
+        this.studentRepository = studentRepository;
     }
 
-    public Student getStudent(Long studentId) {
-        return studentMap.get(studentId);
+    public Student addStudent(Student student) {
+        return studentRepository.save(student);
+    }
+
+    public Student findStudent(Long studentId) {
+        return studentRepository.findById(studentId).get();
     }
 
 
     public Student updateStudent(Student student) {
-        if (!studentMap.containsKey(student.getId())) {
-            return null;
-        }
-        studentMap.put(student.getId(), student);
-        return student;
+        return studentRepository.save(student);
     }
 
-    public Student removeStudent(Long studentId) {
-        return studentMap.remove(studentId);
+    public void removeStudent(Long studentId) {
+        studentRepository.deleteById(studentId);
     }
 
     public List<Student> filteringStudentsByAge(int ageStudent) {
-        return findAll().stream().filter(student -> student.getAge()==ageStudent).collect(Collectors.toList());
+        return findAll().stream().filter(student -> student.getAge() == ageStudent).collect(Collectors.toList());
     }
 
     public Collection<Student> findAll() {
-        return Collections.unmodifiableCollection(studentMap.values());
+        return studentRepository.findAll();
     }
 
 }
