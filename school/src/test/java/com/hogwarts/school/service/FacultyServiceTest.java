@@ -1,6 +1,9 @@
 package com.hogwarts.school.service;
 
+import com.hogwarts.school.exception.FacultyNotFoundException;
+
 import com.hogwarts.school.model.Faculty;
+
 
 import com.hogwarts.school.repositories.FacultyRepository;
 
@@ -17,6 +20,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,19 +44,28 @@ class FacultyServiceTest {
         Faculty expected = new Faculty(5L, "Новый факультет", "Черный");
         when(facultyRepository.save(expected)).thenReturn(expected);
         facultyList.add(expected);
+        when(facultyRepository.save(expected)).thenReturn(expected);
+        assertThat(facultyService.createFaculty(expected)).isEqualTo(expected);
         when(facultyRepository.findAll()).thenReturn(facultyList);
-        facultyService.addFaculty(expected);
         assertThat(facultyService.findAllFaculty()).contains(expected);
     }
 
     @Test
-    void findFaculty() {
+    void findFacultyPositiveTest() {
         Faculty expected = new Faculty(5L, "Новый факультет", "Черный");
         when(facultyRepository.save(expected)).thenReturn(expected);
         facultyList.add(expected);
-        facultyService.addFaculty(expected);
+        when(facultyRepository.save(expected)).thenReturn(expected);
+        assertThat(facultyService.createFaculty(expected)).isEqualTo(expected);
         when(facultyRepository.findById(5L)).thenReturn(Optional.of(expected));
         assertThat(facultyService.findFaculty(5L)).isEqualTo(expected);
+    }
+
+    @Test
+    void findFacultyNegativeTest() {
+        when(facultyRepository.findById(7L)).thenThrow(FacultyNotFoundException.class);
+        assertThatThrownBy(() -> facultyService.findFaculty(7L)).isInstanceOf(FacultyNotFoundException.class);
+
     }
 
     @Test
@@ -60,38 +73,49 @@ class FacultyServiceTest {
         Faculty expected = new Faculty(5L, "Новый факультет", "Черный");
         Faculty actual = new Faculty(5L, "Новый факультет", "Золотой");
         when(facultyRepository.save(expected)).thenReturn(expected);
+        assertThat(facultyService.createFaculty(expected)).isEqualTo(expected);
         facultyList.add(expected);
-        facultyService.addFaculty(expected);
         when(facultyRepository.findAll()).thenReturn(facultyList);
         assertThat(facultyService.findAllFaculty()).contains(expected);
+        when(facultyRepository.findById(7L)).thenReturn(Optional.of(actual));
         when(facultyRepository.save(actual)).thenReturn(actual);
-        assertThat(facultyService.updateFaculty(actual)).isEqualTo(actual);
+        assertThat(facultyService.updateFaculty(7L, actual)).isEqualTo(actual);
     }
 
     @Test
     void updateFacultyNegativeTest() {
-        assertThat(facultyService.findAllFaculty()).doesNotContain(new Faculty(5L, "Рандомный факультет", "Фиолетовый"));
-        assertThat(facultyService.updateFaculty(new Faculty(5L, "Рандомный факультет", "Фиолетовый"))).isEqualTo(null);
+        when(facultyRepository.findById(7L)).thenThrow(FacultyNotFoundException.class);
+        assertThatThrownBy(() -> facultyService.updateFaculty(7L, new Faculty(7L, "Рандомный факультет", "Белый"))).isInstanceOf(FacultyNotFoundException.class);
     }
 
     @Test
     void removeFacultyTest() {
         Faculty expected = new Faculty(5L, "Новый факультет", "Белый");
         facultyList.add(expected);
-        facultyService.addFaculty(expected);
+        when(facultyRepository.save(expected)).thenReturn(expected);
+        facultyService.createFaculty(expected);
         when(facultyRepository.findAll()).thenReturn(facultyList);
         assertThat(facultyService.findAllFaculty()).contains(expected);
-        facultyService.removeFaculty(expected.getId());
+        when(facultyRepository.findById(5L)).thenReturn(Optional.of(expected));
+        assertThat(facultyService.removeFaculty(expected.getId())).isEqualTo(expected);
         facultyList.remove(expected);
         assertThat(facultyService.findAllFaculty()).doesNotContain(expected);
 
     }
 
+    @Test
+    void removeNegativeTest() {
+        when(facultyRepository.findById(7L)).thenThrow(FacultyNotFoundException.class);
+        assertThatThrownBy(() -> facultyService.removeFaculty(7L))
+                .isInstanceOf(FacultyNotFoundException.class);
+    }
+
 
     @Test
     void filteringFacultyByColorTest() {
-        when(facultyRepository.findAll()).thenReturn(facultyList);
-        assertThat(facultyService.filteringFacultyByColor("Зеленый")).contains(new Faculty(1L, "Слизерин", "Зеленый"));
+        when(facultyRepository.findByColor("Зеленый")).thenReturn(facultyList);
+        assertThat(facultyService.filteringFacultyByColor("Зеленый"))
+                .contains(new Faculty(1L, "Слизерин", "Зеленый"));
     }
 
     @Test
@@ -104,4 +128,5 @@ class FacultyServiceTest {
                         new Faculty(3L, "Когтевран", "Синий"),
                         new Faculty(4L, "Пуффендуй", "Желтый"));
     }
+
 }

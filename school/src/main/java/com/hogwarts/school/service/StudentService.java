@@ -1,11 +1,13 @@
 package com.hogwarts.school.service;
 
+import com.hogwarts.school.exception.StudentNotFoundException;
+
 import com.hogwarts.school.model.Student;
 import com.hogwarts.school.repositories.StudentRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
+
 
 @Service
 public class StudentService {
@@ -16,28 +18,37 @@ public class StudentService {
         this.studentRepository = studentRepository;
     }
 
-    public Student addStudent(Student student) {
+    public Student createStudent(Student student) {
         return studentRepository.save(student);
     }
 
     public Student findStudent(Long studentId) {
-        return studentRepository.findById(studentId).get();
+        Student findStudent = studentRepository.findById(studentId).orElse(null);
+        if (findStudent == null) {
+            throw new StudentNotFoundException();
+        }
+        return findStudent;
     }
 
 
-    public Student updateStudent(Student student) {
-        return studentRepository.save(student);
+    public Student updateStudent(Long id, Student student) {
+        Student old = findStudent(id);
+        old.setAge(student.getAge());
+        old.setName(student.getName());
+        return studentRepository.save(old);
     }
 
-    public void removeStudent(Long studentId) {
-        studentRepository.deleteById(studentId);
+    public Student removeStudent(Long studentId) {
+        Student deleteStudent = findStudent(studentId);
+        studentRepository.delete(deleteStudent);
+        return deleteStudent;
     }
 
-    public List<Student> filteringStudentsByAge(int ageStudent) {
-        return findAll().stream().filter(student -> student.getAge() == ageStudent).collect(Collectors.toList());
+    public Collection<Student> findByAgeStudent(int studentAge) {
+        return studentRepository.findByAge(studentAge);
     }
 
-    public Collection<Student> findAll() {
+    public Collection<Student> findAllStudent() {
         return studentRepository.findAll();
     }
 

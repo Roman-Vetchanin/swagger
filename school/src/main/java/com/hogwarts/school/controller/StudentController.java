@@ -19,41 +19,32 @@ public class StudentController {
         this.studentService = studentService;
     }
 
-    @PostMapping("/addStudent")
+    @PostMapping
     public ResponseEntity<Student> addStudent(@RequestBody Student student) {
-        return ResponseEntity.ok(studentService.addStudent(student));
+        return ResponseEntity.ok(studentService.createStudent(student));
     }
 
-    @GetMapping("/getStudent/{studentId}")
+    @GetMapping("{studentId}")
     public ResponseEntity<Student> getStudent(@PathVariable Long studentId) {
-        Student std = studentService.findStudent(studentId);
-        if (studentId == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(std);
+        return ResponseEntity.ok(studentService.findStudent(studentId));
     }
 
-    @PutMapping()
-    public ResponseEntity<Student> updateStudent(@RequestBody Student student) {
-        Student std = studentService.updateStudent(student);
-        if (std == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(std);
+    @PutMapping("/{id}")
+    public ResponseEntity<Student> updateStudent(@PathVariable Long id, @RequestBody Student student) {
+        return ResponseEntity.ok(studentService.updateStudent(id,student));
     }
 
-    @DeleteMapping("/removeStudent/{studentId}")
-    public ResponseEntity removeStudent(@PathVariable Long studentId) {
-        studentService.removeStudent(studentId);
-        return ResponseEntity.ok().build();
+    @DeleteMapping("/{studentId}")
+    public ResponseEntity<Student> removeStudent(@PathVariable Long studentId) {
+        return ResponseEntity.ok(studentService.removeStudent(studentId));
     }
-    @GetMapping("getStudentByAge/{studentId}")
-    public ResponseEntity<List<Student>> getStudentByAge(@PathVariable int studentAge) {
-        List<Student> std = studentService.filteringStudentsByAge(studentAge);
+    @GetMapping("/{studentAge}")
+    public ResponseEntity<Collection<Student>> getStudentByAge(@PathVariable int studentAge) {
+        Collection<Student> std = studentService.findByAgeStudent(studentAge);
         return ResponseEntity.ok(std);
     }
-    @GetMapping("/getAll")
+    @GetMapping
     public ResponseEntity<Collection<Student>> getAll() {
-        return ResponseEntity.ok(studentService.findAll());
+        return ResponseEntity.ok(studentService.findAllStudent());
     }
 }

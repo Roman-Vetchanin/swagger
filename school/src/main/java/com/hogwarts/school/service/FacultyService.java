@@ -1,11 +1,12 @@
 package com.hogwarts.school.service;
 
+import com.hogwarts.school.exception.FacultyNotFoundException;
 import com.hogwarts.school.model.Faculty;
 import com.hogwarts.school.repositories.FacultyRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
+
 
 @Service
 public class FacultyService {
@@ -17,25 +18,40 @@ public class FacultyService {
     }
 
 
-    public Faculty crateFaculty(Faculty faculty) {
+    public Faculty createFaculty(Faculty faculty) {
         return facultyRepository.save(faculty);
     }
 
     public Faculty findFaculty(Long studentId) {
-        return facultyRepository.findById(studentId).get();
+        Faculty findFaculty = facultyRepository.findById(studentId).orElse(null);
+        if (findFaculty == null) {
+            throw new FacultyNotFoundException();
+        }
+        return findFaculty;
     }
 
 
-    public Faculty updateFaculty(Faculty faculty) {
-        return facultyRepository.save(faculty);
+    public Faculty updateFaculty(Long id, Faculty faculty) {
+        Faculty old = facultyRepository.findById(id).orElse(null);
+        if (old == null) {
+            throw new FacultyNotFoundException();
+        }
+        old.setColor(faculty.getColor());
+        old.setName(faculty.getName());
+        return facultyRepository.save(old);
     }
 
-    public void removeFaculty(Long facultyId) {
-        facultyRepository.deleteById(facultyId);
+    public Faculty removeFaculty(Long facultyId) {
+        Faculty deleteFaculty = facultyRepository.findById(facultyId).orElse(null);
+        if (deleteFaculty == null) {
+            throw new FacultyNotFoundException();
+        }
+        facultyRepository.delete(deleteFaculty);
+        return deleteFaculty;
     }
 
-    public List<Faculty> filteringFacultyByColor(String color) {
-        return findAllFaculty().stream().filter(faculty -> faculty.getColor().equals(color)).collect(Collectors.toList());
+    public Collection<Faculty> filteringFacultyByColor(String color) {
+        return facultyRepository.findByColor(color);
     }
 
     public Collection<Faculty> findAllFaculty() {
