@@ -2,7 +2,9 @@ package com.hogwarts.school.service;
 
 import com.hogwarts.school.exception.FacultyNotFoundException;
 import com.hogwarts.school.model.Faculty;
+import com.hogwarts.school.model.Student;
 import com.hogwarts.school.repositories.FacultyRepository;
+import com.hogwarts.school.repositories.StudentRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -12,9 +14,11 @@ import java.util.*;
 public class FacultyService {
 
     private final FacultyRepository facultyRepository;
+    private final StudentRepository studentRepository;
 
-    public FacultyService(FacultyRepository facultyRepository) {
+    public FacultyService(FacultyRepository facultyRepository, StudentRepository studentRepository) {
         this.facultyRepository = facultyRepository;
+        this.studentRepository = studentRepository;
     }
 
 
@@ -22,8 +26,8 @@ public class FacultyService {
         return facultyRepository.save(faculty);
     }
 
-    public Faculty findFaculty(Long studentId) {
-        Faculty findFaculty = facultyRepository.findById(studentId).orElse(null);
+    public Faculty findFaculty(Long facultyId) {
+        Faculty findFaculty = facultyRepository.findById(facultyId).orElse(null);
         if (findFaculty == null) {
             throw new FacultyNotFoundException();
         }
@@ -57,4 +61,14 @@ public class FacultyService {
     public Collection<Faculty> findAllFaculty() {
         return facultyRepository.findAll();
     }
+
+    public List<Faculty> findByColorOrName(String colorOrName) {
+        return facultyRepository.findByColorIgnoreCaseOrNameIgnoreCase(colorOrName,colorOrName);
+    }
+
+    public List<Student> findStudents(long id) {
+        Faculty faculty = findFaculty(id);
+        return studentRepository.findByFaculty_Id(faculty.getId());
+    }
+
 }

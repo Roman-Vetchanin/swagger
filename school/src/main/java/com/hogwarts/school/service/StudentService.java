@@ -1,8 +1,11 @@
 package com.hogwarts.school.service;
 
+import com.hogwarts.school.exception.FacultyNotFoundException;
 import com.hogwarts.school.exception.StudentNotFoundException;
 
+import com.hogwarts.school.model.Faculty;
 import com.hogwarts.school.model.Student;
+import com.hogwarts.school.repositories.FacultyRepository;
 import com.hogwarts.school.repositories.StudentRepository;
 import org.springframework.stereotype.Service;
 
@@ -13,12 +16,17 @@ import java.util.*;
 public class StudentService {
 
     private final StudentRepository studentRepository;
+    private final FacultyRepository facultyRepository;
 
-    public StudentService(StudentRepository studentRepository) {
+    public StudentService(StudentRepository studentRepository,
+                          FacultyRepository facultyRepository) {
         this.studentRepository = studentRepository;
+        this.facultyRepository = facultyRepository;
     }
 
     public Student createStudent(Student student) {
+        student.setId(null);
+       fillFaculty(student.getFaculty(),student);
         return studentRepository.save(student);
     }
 
@@ -33,6 +41,7 @@ public class StudentService {
 
     public Student updateStudent(Long id, Student student) {
         Student old = findStudent(id);
+        fillFaculty(old.getFaculty(),student);
         old.setAge(student.getAge());
         old.setName(student.getName());
         return studentRepository.save(old);
@@ -52,4 +61,19 @@ public class StudentService {
         return studentRepository.findAll();
     }
 
+    public List<Student> findByAgeBetween(int minAge, int maxAge) {
+        return studentRepository.findByAgeBetween(minAge, maxAge);
+    }
+
+    public Faculty findFaculty(long id) {
+        return findStudent(id).getFaculty();
+    }
+
+    private void fillFaculty(Faculty faculty, Student student) {
+        if (faculty != null && faculty.getId() == null) {
+            Faculty fcl = facultyRepository.findById(faculty.getId())
+                    .orElseThrow(FacultyNotFoundException::new);
+            student.setFaculty(fcl);
+        }
+    }
 }

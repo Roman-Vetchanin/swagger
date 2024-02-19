@@ -1,12 +1,11 @@
 package com.hogwarts.school.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 import java.util.Objects;
+
 @Entity
+@Table(name = "students")
 public class Student {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -14,14 +13,27 @@ public class Student {
 
     private String name;
     private int age;
-    public Student(Long id, String name, int age) {
+    @ManyToMany
+    @JoinColumn(name = "faculty_id")
+    private Faculty faculty;
+
+    public Student(Long id, String name, int age,Faculty faculty) {
         this.id = id;
         this.name = name;
         this.age = age;
+        this.faculty = faculty;
     }
 
     public Student() {
 
+    }
+
+    public Faculty getFaculty() {
+        return faculty;
+    }
+
+    public void setFaculty(Faculty faculty) {
+        this.faculty = faculty;
     }
 
     public Long getId() {

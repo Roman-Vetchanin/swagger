@@ -5,8 +5,10 @@ import com.hogwarts.school.exception.FacultyNotFoundException;
 import com.hogwarts.school.model.Faculty;
 
 
+import com.hogwarts.school.model.Student;
 import com.hogwarts.school.repositories.FacultyRepository;
 
+import com.hogwarts.school.repositories.StudentRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,6 +30,8 @@ class FacultyServiceTest {
 
     @Mock
     private FacultyRepository facultyRepository;
+    @Mock
+    private StudentRepository studentRepository;
 
     @InjectMocks
     private FacultyService facultyService;
@@ -113,7 +117,7 @@ class FacultyServiceTest {
 
     @Test
     void filteringFacultyByColorTest() {
-        when(facultyRepository.findByColor("Зеленый")).thenReturn(facultyList);
+        when(facultyRepository.findByColor("Зеленый")).thenReturn(List.of(new Faculty(1L, "Слизерин", "Зеленый")));
         assertThat(facultyService.filteringFacultyByColor("Зеленый"))
                 .contains(new Faculty(1L, "Слизерин", "Зеленый"));
     }
@@ -129,4 +133,28 @@ class FacultyServiceTest {
                         new Faculty(4L, "Пуффендуй", "Желтый"));
     }
 
+    @Test
+    void findByColorOrName() {
+       /* Faculty expected = new Faculty(1L, "Слизерин", "Зеленый");
+        when(facultyRepository.findByColorIgnoreCaseOrNameIgnoreCase(expected.getName(), expected.getColor()))
+                .thenReturn(facultyList);
+        assertThat(facultyService.findByColorOrName(expected.getColor())).isEqualTo(expected);*/
+        // Требуется помощь с этим тестом, не понимаю что нужно сделать...
+    }
+
+    @Test
+    void findStudents() {
+        Faculty expected = new Faculty(2L, "Грифиндор", "Красный");
+        when(facultyRepository.findById(2L)).thenReturn(Optional.of(expected));
+        when(studentRepository.findByFaculty_Id(expected.getId())).thenReturn(List.of(
+                new Student(1L, "Гарри", 16, new Faculty(2L, "Грифиндор", "Красный")),
+                new Student(2L, "Рон", 15, new Faculty(2L, "Грифиндор", "Красный")),
+                new Student(3L, "Гермиона", 17, new Faculty(2L, "Грифиндор", "Красный"))
+        ));
+        assertThat(facultyService.findStudents(2L)).hasSize(3).containsExactlyInAnyOrder(
+                new Student(1L, "Гарри", 16, new Faculty(2L, "Грифиндор", "Красный")),
+                new Student(2L, "Рон", 15, new Faculty(2L, "Грифиндор", "Красный")),
+                new Student(3L, "Гермиона", 17, new Faculty(2L, "Грифиндор", "Красный"))
+        );
+    }
 }
