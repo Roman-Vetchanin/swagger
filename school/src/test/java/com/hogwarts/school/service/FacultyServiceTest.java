@@ -147,14 +147,14 @@ class FacultyServiceTest {
         Faculty expected = new Faculty(2L, "Грифиндор", "Красный");
         when(facultyRepository.findById(2L)).thenReturn(Optional.of(expected));
         when(studentRepository.findByFaculty_Id(expected.getId())).thenReturn(List.of(
-                new Student(1L, "Гарри", 16, new Faculty(2L, "Грифиндор", "Красный")),
-                new Student(2L, "Рон", 15, new Faculty(2L, "Грифиндор", "Красный")),
-                new Student(3L, "Гермиона", 17, new Faculty(2L, "Грифиндор", "Красный"))
+                new Student(1L, "Гарри", 16),
+                new Student(2L, "Рон", 15),
+                new Student(3L, "Гермиона", 17)
         ));
         assertThat(facultyService.findStudents(2L)).hasSize(3).containsExactlyInAnyOrder(
-                new Student(1L, "Гарри", 16, new Faculty(2L, "Грифиндор", "Красный")),
-                new Student(2L, "Рон", 15, new Faculty(2L, "Грифиндор", "Красный")),
-                new Student(3L, "Гермиона", 17, new Faculty(2L, "Грифиндор", "Красный"))
+                new Student(1L, "Гарри", 16),
+                new Student(2L, "Рон", 15),
+                new Student(3L, "Гермиона", 17)
         );
     }
 }

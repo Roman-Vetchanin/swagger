@@ -41,7 +41,7 @@ public class StudentService {
 
     public Student updateStudent(Long id, Student student) {
         Student old = findStudent(id);
-        fillFaculty(old.getFaculty(),student);
+        fillFaculty(student.getFaculty(),old);
         old.setAge(student.getAge());
         old.setName(student.getName());
         return studentRepository.save(old);

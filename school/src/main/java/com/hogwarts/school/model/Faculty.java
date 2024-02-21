@@ -2,6 +2,7 @@ package com.hogwarts.school.model;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 @Entity
@@ -13,7 +14,6 @@ public class Faculty {
     private  String name;
     private  String color;
 
-    private List<Student> studentList;
 
     public Faculty(Long id, String name, String color) {
         this.id = id;
@@ -25,13 +25,6 @@ public class Faculty {
 
     }
 
-    public List<Student> getStudentList() {
-        return studentList;
-    }
-
-    public void setStudentList(List<Student> studentList) {
-        this.studentList = studentList;
-    }
 
 
     public Long getId() {

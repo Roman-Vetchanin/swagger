@@ -23,6 +23,7 @@ public class FacultyService {
 
 
     public Faculty createFaculty(Faculty faculty) {
+        faculty.setId(null);
         return facultyRepository.save(faculty);
     }
 
