@@ -28,38 +28,28 @@ public class FacultyService {
     }
 
     public Faculty findFaculty(Long facultyId) {
-        Faculty findFaculty = facultyRepository.findById(facultyId).orElse(null);
-        if (findFaculty == null) {
-            throw new FacultyNotFoundException();
-        }
-        return findFaculty;
+        return facultyRepository.findById(facultyId).orElseThrow(FacultyNotFoundException::new);
     }
 
 
     public Faculty updateFaculty(Long id, Faculty faculty) {
-        Faculty old = facultyRepository.findById(id).orElse(null);
-        if (old == null) {
-            throw new FacultyNotFoundException();
-        }
+        Faculty old = findFaculty(id);
         old.setColor(faculty.getColor());
         old.setName(faculty.getName());
         return facultyRepository.save(old);
     }
 
     public Faculty removeFaculty(Long facultyId) {
-        Faculty deleteFaculty = facultyRepository.findById(facultyId).orElse(null);
-        if (deleteFaculty == null) {
-            throw new FacultyNotFoundException();
-        }
+        Faculty deleteFaculty = findFaculty(facultyId);
         facultyRepository.delete(deleteFaculty);
         return deleteFaculty;
     }
 
-    public Collection<Faculty> filteringFacultyByColor(String color) {
+    public List<Faculty> filteringFacultyByColor(String color) {
         return facultyRepository.findByColor(color);
     }
 
-    public Collection<Faculty> findAllFaculty() {
+    public List<Faculty> findAllFaculty() {
         return facultyRepository.findAll();
     }
 

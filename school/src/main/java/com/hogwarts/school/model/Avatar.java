@@ -15,10 +15,9 @@ public class Avatar {
     private Long fileSize;
     private String mediaType;
     @Lob
-    @Column(columnDefinition = "oid")
     private byte[] data;
     @OneToOne
-    @JoinColumn(name = "students_id")
+    @JoinColumn(name = "student_id")
     private Student student;
 
     @Override

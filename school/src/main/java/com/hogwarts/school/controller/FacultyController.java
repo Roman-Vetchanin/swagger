@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.List;
 
 @RestController
-@RequestMapping("faculty")
+@RequestMapping("/faculty")
 public class FacultyController {
 
     private final FacultyService facultyService;
@@ -30,23 +30,23 @@ public class FacultyController {
     }
 
     @PutMapping("/{facultyId}")
-    public ResponseEntity<Faculty> updateFaculty(@PathVariable Long faultyId, @RequestBody Faculty faculty) {
-        return ResponseEntity.ok(facultyService.updateFaculty(faultyId, faculty));
+    public ResponseEntity<Faculty> updateFaculty(@PathVariable Long facultyId, @RequestBody Faculty faculty) {
+        return ResponseEntity.ok(facultyService.updateFaculty(facultyId, faculty));
     }
 
     @DeleteMapping("/{facultyId}")
-    public ResponseEntity<Faculty> removeStudent(@PathVariable Long facultyId) {
+    public ResponseEntity<Faculty> removeFaculty(@PathVariable Long facultyId) {
         return ResponseEntity.ok(facultyService.removeFaculty(facultyId));
     }
 
     @GetMapping(params = "color")
-    public ResponseEntity<Collection<Faculty>> getFacultyByColor(@RequestParam String color) {
-        Collection<Faculty> fcl = facultyService.filteringFacultyByColor(color);
+    public ResponseEntity<List<Faculty>> getFacultyByColor(@RequestParam String color) {
+        List<Faculty> fcl = facultyService.filteringFacultyByColor(color);
         return ResponseEntity.ok(fcl);
     }
 
     @GetMapping
-    public ResponseEntity<Collection<Faculty>> getAll() {
+    public ResponseEntity<List<Faculty>> getAll() {
         return ResponseEntity.ok(facultyService.findAllFaculty());
     }
 
