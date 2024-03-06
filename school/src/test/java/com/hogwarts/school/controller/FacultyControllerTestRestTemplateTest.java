@@ -108,10 +108,9 @@ class FacultyControllerTestRestTemplateTest {
 
     }
 
-    //Отдельно этот тест проходит, но в общем старте валится, не могу понять почему
     @Test
     void getFacultyPositiveTest() {
-        Faculty faculty = facultyList.get(1);
+        Faculty faculty = facultyList.get(faker.random().nextInt(facultyList.size()));
 
         ResponseEntity<Faculty> getFacultyFromDb = testRestTemplate.getForEntity(buildUrl("/faculty/" + faculty.getId()),
                 Faculty.class);
@@ -136,11 +135,11 @@ class FacultyControllerTestRestTemplateTest {
     //Отдельно этот тест проходит, но в общем старте валится, не могу понять почему
     @Test
     void updateFacultyPositiveTest() {
-        Faculty faculty = facultyList.get(1);
-        Faculty newFaculty = new Faculty(null, faculty.getName()+1213, faculty.getColor()+123123);
+        Faculty faculty = facultyList.get(faker.random().nextInt(facultyList.size()));
+        Faculty newFaculty = new Faculty(null, faculty.getName() + 1213, faculty.getColor() + 123123);
 
         HttpEntity<Faculty> entity = new HttpEntity<>(newFaculty);
-        ResponseEntity<Faculty> updateFaculty = testRestTemplate.exchange(buildUrl("/faculty/"+faculty.getId()),
+        ResponseEntity<Faculty> updateFaculty = testRestTemplate.exchange(buildUrl("/faculty/" + faculty.getId()),
                 HttpMethod.PUT,
                 entity,
                 Faculty.class);
@@ -170,7 +169,7 @@ class FacultyControllerTestRestTemplateTest {
         facultyList.add(faculty1);
         facultyRepository.save(faculty1);
         Faculty faculty = facultyList.get(4);
-        ResponseEntity<Faculty> deleteFaculty = testRestTemplate.exchange(buildUrl("/faculty/"+faculty.getId()),
+        ResponseEntity<Faculty> deleteFaculty = testRestTemplate.exchange(buildUrl("/faculty/" + faculty.getId()),
                 HttpMethod.DELETE,
                 null,
                 Faculty.class);
@@ -178,7 +177,7 @@ class FacultyControllerTestRestTemplateTest {
         assertThat(deleteFaculty.getStatusCode()).isEqualTo(HttpStatus.OK);
 
 
-        ResponseEntity<Faculty> getFacultyFromDb = testRestTemplate.getForEntity(buildUrl("/faculty/"+faculty.getId()),
+        ResponseEntity<Faculty> getFacultyFromDb = testRestTemplate.getForEntity(buildUrl("/faculty/" + faculty.getId()),
                 Faculty.class);
 
 
@@ -195,9 +194,10 @@ class FacultyControllerTestRestTemplateTest {
         assertThat(deleteFaculty.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
-    //При запуске всех тестов, этот валится, но при запуске отдельно все ОК
     @Test
     void getFacultyByColorTest() {
+        //тут можно переписать на получение рандомного факультета и передать цвет факультета как критерий поиска.
+        //аналогично можно поступить и с поиском по имени.
         Faculty redFaculty = new Faculty(null, "Красный факультет", "Красный");
         facultyList.add(redFaculty);
         List<Faculty> expected = facultyList.stream().filter(faculty -> faculty.getColor().equals("Красный")).toList();
@@ -221,7 +221,6 @@ class FacultyControllerTestRestTemplateTest {
                 .isEqualTo(expected);
     }
 
-    //При запуске всех тестов, этот валится, но при запуске отдельно все ОК
     @Test
     void getAllTest() {
         List<Faculty> expected = facultyList.stream().toList();
@@ -276,17 +275,23 @@ class FacultyControllerTestRestTemplateTest {
     }
 
     @Test
-    void findStudents() {
-        Faculty faculty = facultyList.get(faker.random().nextInt(students.size()));
+    void findStudentsPositiveTest() {
+        Faculty faculty = facultyList.get(faker.random().nextInt(facultyList.size()));
         List<Student> studentList = students.stream().filter(student -> student.getFaculty().getName().equals(faculty.getName())).toList();
-        ResponseEntity<Student> responseEntity = testRestTemplate.getForEntity(buildUrl("/faculty/{id}/students")
-                , Student.class
-                , Map.of("id", faculty.getId()));
-        Student actual = responseEntity.getBody();
-
+        ResponseEntity<List<Student>> responseEntity = testRestTemplate.exchange(buildUrl("/faculty/{id}/students"), HttpMethod.GET
+                , null,
+                new ParameterizedTypeReference<>() {
+                }, Map.of("id", faculty.getId()));
+        List<Student> actual = responseEntity.getBody();
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(actual).usingRecursiveComparison()
-                .ignoringCollectionOrder()
-                .isEqualTo(studentList);
+                .ignoringCollectionOrder().isEqualTo(studentList);
+    }
+
+    @Test
+    void findStudentsNegativeTest() {
+        ResponseEntity<Student> responseEntity = testRestTemplate.getForEntity(buildUrl("/faculty/{id}/students")
+                , Student.class, Map.of("id", -1));
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 }
