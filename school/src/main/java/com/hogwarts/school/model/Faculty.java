@@ -25,8 +25,6 @@ public class Faculty {
 
     }
 
-
-
     public Long getId() {
         return id;
     }

@@ -21,7 +21,6 @@ import org.springframework.http.ResponseEntity;
 
 
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
@@ -51,42 +50,31 @@ class FacultyControllerTestRestTemplateTest {
         // - org.springframework.dao.DataIntegrityViolationException:
         // could not execute statement [Нарушение ссылочной целостности: "FKJY3UTTPWFPB0S83E2PVPATG9J:
         // PUBLIC.STUDENTS FOREIGN KEY(FACULTY_ID) REFERENCES PUBLIC.FACULTIES(ID) (CAST(1 AS BIGINT))"
-//        facultyRepository.deleteAll();
+        students.clear();
+        facultyList.clear();
         studentRepository.deleteAll();
+        facultyRepository.deleteAll();
     }
 
     @BeforeEach
     public void beforeEach() {
-        Faculty faculty = createFaculty();
-        Faculty faculty1 = createFaculty();
-        createStudents(faculty, faculty1);
-        facultyList.addAll(List.of(faculty,faculty1));
+        for (int i = 0; i < 4; i++) {
+            Faculty faculty = new Faculty();
+            faculty.setColor(faker.color().name());
+            faculty.setName(faker.harryPotter().house());
+            facultyList.add(faculty);
+            facultyRepository.save(faculty);
+        }
+        for (int i = 0; i < 5; i++) {
+            Student student = new Student();
+            student.setFaculty(facultyList.get(faker.random().nextInt(facultyList.size())));
+            student.setAge(faker.random().nextInt(11, 18));
+            student.setName(faker.harryPotter().character());
+            students.add(student);
+            studentRepository.save(student);
+        }
     }
 
-    private Faculty createFaculty() {
-        Faculty faculty = new Faculty();
-        faculty.setName(faker.harryPotter().house());
-        faculty.setColor(faker.color().name());
-        return facultyRepository.save(faculty);
-    }
-
-    private void createStudents(Faculty... faculties) {
-        facultyList.clear();
-        students.clear();
-        Stream.of(faculties)
-                .forEach(faculty ->
-                        students.addAll(studentRepository.saveAll(Stream.generate(() -> {
-                                    Student student = new Student();
-                                    student.setFaculty(faculty);
-                                    student.setName(faker.harryPotter().character());
-                                    student.setAge(faker.random().nextInt(11, 18));
-                                    return student;
-                                }).limit(5)
-                                .collect(Collectors.toList())))
-                );
-
-
-    }
 
     private String buildUrl(String uri) {
         return "http://localhost:%d%s".formatted(port, uri);
@@ -125,7 +113,7 @@ class FacultyControllerTestRestTemplateTest {
     void getFacultyPositiveTest() {
         Faculty faculty = facultyList.get(1);
 
-        ResponseEntity<Faculty> getFacultyFromDb = testRestTemplate.getForEntity(buildUrl("/faculty/"+faculty.getId()),
+        ResponseEntity<Faculty> getFacultyFromDb = testRestTemplate.getForEntity(buildUrl("/faculty/" + faculty.getId()),
                 Faculty.class);
 
         Faculty get = getFacultyFromDb.getBody();
@@ -148,14 +136,11 @@ class FacultyControllerTestRestTemplateTest {
     //Отдельно этот тест проходит, но в общем старте валится, не могу понять почему
     @Test
     void updateFacultyPositiveTest() {
-        Faculty faculty = new Faculty(null, "какой то новый факультет", "рандомный цвет");
-        testRestTemplate.postForEntity(buildUrl("/faculty"),
-                faculty
-                , Faculty.class);
-        Faculty newFaculty = new Faculty(null, "какой то новый факультет123123", "рандомный цвет123123123");
+        Faculty faculty = facultyList.get(1);
+        Faculty newFaculty = new Faculty(null, faculty.getName()+1213, faculty.getColor()+123123);
 
         HttpEntity<Faculty> entity = new HttpEntity<>(newFaculty);
-        ResponseEntity<Faculty> updateFaculty = testRestTemplate.exchange(buildUrl("/faculty/5"),
+        ResponseEntity<Faculty> updateFaculty = testRestTemplate.exchange(buildUrl("/faculty/"+faculty.getId()),
                 HttpMethod.PUT,
                 entity,
                 Faculty.class);
@@ -181,27 +166,11 @@ class FacultyControllerTestRestTemplateTest {
 
     @Test
     void removeFacultyPositiveTest() {
-        Faculty faculty = new Faculty(null, "какой то новый факультет", "рандомный цвет");
-        ResponseEntity<Faculty> responseEntity = testRestTemplate.postForEntity(buildUrl("/faculty"),
-                faculty
-                , Faculty.class);
-
-        Faculty created = responseEntity.getBody();
-
-        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(created).isNotNull();
-        assertThat(responseEntity.getBody()).usingRecursiveComparison()
-                .ignoringFields("id")
-                .isEqualTo(faculty);
-        assertThat(created.getId()).isNotNull();
-
-        Optional<Faculty> fromDb = facultyRepository.findById(created.getId());
-        assertThat(fromDb).isPresent();
-        assertThat(fromDb.get())
-                .usingRecursiveComparison()
-                .isEqualTo(created);
-
-        ResponseEntity<Faculty> deleteFaculty = testRestTemplate.exchange(buildUrl("/faculty/5"),
+        Faculty faculty1 = new Faculty(5L, faker.harryPotter().house(), faker.color().name());
+        facultyList.add(faculty1);
+        facultyRepository.save(faculty1);
+        Faculty faculty = facultyList.get(4);
+        ResponseEntity<Faculty> deleteFaculty = testRestTemplate.exchange(buildUrl("/faculty/"+faculty.getId()),
                 HttpMethod.DELETE,
                 null,
                 Faculty.class);
@@ -209,11 +178,12 @@ class FacultyControllerTestRestTemplateTest {
         assertThat(deleteFaculty.getStatusCode()).isEqualTo(HttpStatus.OK);
 
 
-        ResponseEntity<Faculty> getFacultyFromDb = testRestTemplate.getForEntity(buildUrl("/faculty/5"),
+        ResponseEntity<Faculty> getFacultyFromDb = testRestTemplate.getForEntity(buildUrl("/faculty/"+faculty.getId()),
                 Faculty.class);
 
 
         assertThat(getFacultyFromDb.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        facultyList.remove(4);
     }
 
     @Test
@@ -224,13 +194,14 @@ class FacultyControllerTestRestTemplateTest {
                 Faculty.class);
         assertThat(deleteFaculty.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
+
     //При запуске всех тестов, этот валится, но при запуске отдельно все ОК
     @Test
     void getFacultyByColorTest() {
         Faculty redFaculty = new Faculty(null, "Красный факультет", "Красный");
         facultyList.add(redFaculty);
         List<Faculty> expected = facultyList.stream().filter(faculty -> faculty.getColor().equals("Красный")).toList();
-        ResponseEntity<Faculty> responseEntityRedFaculty = testRestTemplate.postForEntity(buildUrl("/faculty"),
+        testRestTemplate.postForEntity(buildUrl("/faculty"),
                 redFaculty
                 , Faculty.class);
 
@@ -249,6 +220,7 @@ class FacultyControllerTestRestTemplateTest {
                 .ignoringCollectionOrder()
                 .isEqualTo(expected);
     }
+
     //При запуске всех тестов, этот валится, но при запуске отдельно все ОК
     @Test
     void getAllTest() {
@@ -256,7 +228,7 @@ class FacultyControllerTestRestTemplateTest {
         ResponseEntity<List<Faculty>> getAllFaculty = testRestTemplate.exchange(buildUrl("/faculty")
                 , HttpMethod.GET
                 , null
-                ,new ParameterizedTypeReference<>() {
+                , new ParameterizedTypeReference<>() {
                 });
         List<Faculty> actual = getAllFaculty.getBody();
 
@@ -305,6 +277,16 @@ class FacultyControllerTestRestTemplateTest {
 
     @Test
     void findStudents() {
-      //не могу понять как написать этот тест...
+        Faculty faculty = facultyList.get(faker.random().nextInt(students.size()));
+        List<Student> studentList = students.stream().filter(student -> student.getFaculty().getName().equals(faculty.getName())).toList();
+        ResponseEntity<Student> responseEntity = testRestTemplate.getForEntity(buildUrl("/faculty/{id}/students")
+                , Student.class
+                , Map.of("id", faculty.getId()));
+        Student actual = responseEntity.getBody();
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(actual).usingRecursiveComparison()
+                .ignoringCollectionOrder()
+                .isEqualTo(studentList);
     }
 }

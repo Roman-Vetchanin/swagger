@@ -129,25 +129,24 @@ class StudentControllerTestRestTemplateTest {
                 .isEqualTo(student);
         assertThat(get.getId()).isNotNull();
     }
-    //При запуске всех тестов, этот валится, но при запуске отдельно все ОК
     @Test
     void updateStudentPositiveTest() {
-        Student student = new Student(null, faker.harryPotter().character(), faker.random().nextInt(11, 18));
-        testRestTemplate.postForEntity(buildUrl("/student"),
-                student
-                , Student.class);
-        Student newStudent = new Student(null, student.getName() + 123, student.getAge() + 5);
-
+        Student oldStudent = students.get(faker.random().nextInt(students.size()));
+        Long id = oldStudent.getId();
+        Student newStudent = new Student();
+        newStudent.setId(id);
+        newStudent.setName("newName");
+        newStudent.setAge(oldStudent.getAge()+5);
         HttpEntity<Student> entity = new HttpEntity<>(newStudent);
-        ResponseEntity<Student> updateFaculty = testRestTemplate.exchange(buildUrl("/student/11"),
+        ResponseEntity<Student> updateFaculty = testRestTemplate.exchange(buildUrl("/student/"+id),
                 HttpMethod.PUT,
                 entity,
                 Student.class);
-        assertThat(student).isNotEqualTo(newStudent);
+        assertThat(oldStudent).isNotEqualTo(newStudent);
         assertThat(updateFaculty.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(updateFaculty.getBody()).isNotNull();
         assertThat(updateFaculty.getBody().getId()).isNotNull();
-        assertThat(updateFaculty.getBody()).usingRecursiveComparison().ignoringFields("id")
+        assertThat(updateFaculty.getBody())
                 .isEqualTo(newStudent);
 
     }
