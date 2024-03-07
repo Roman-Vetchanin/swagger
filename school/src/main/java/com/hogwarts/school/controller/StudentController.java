@@ -1,14 +1,16 @@
 package com.hogwarts.school.controller;
 
+import com.hogwarts.school.model.Faculty;
 import com.hogwarts.school.model.Student;
 import com.hogwarts.school.service.StudentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collection;
 import java.util.List;
 
 @RestController
-@RequestMapping("student")
+@RequestMapping("/student")
 public class StudentController {
 
     private final StudentService studentService;
@@ -17,38 +19,43 @@ public class StudentController {
         this.studentService = studentService;
     }
 
-    @PostMapping("/addStudent")
+    @PostMapping
     public ResponseEntity<Student> addStudent(@RequestBody Student student) {
-        Student std = studentService.addStudent(student);
-        return ResponseEntity.ok(std);
+        return ResponseEntity.ok(studentService.createStudent(student));
     }
 
-    @GetMapping("/getStudent/{studentId}")
+    @GetMapping("{studentId}")
     public ResponseEntity<Student> getStudent(@PathVariable Long studentId) {
-        Student std = studentService.getStudent(studentId);
-        if (studentId == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(std);
+        return ResponseEntity.ok(studentService.findStudent(studentId));
     }
 
-    @PutMapping()
-    public ResponseEntity<Student> updateStudent(@RequestBody Student student) {
-        Student std = studentService.updateStudent(student);
-        if (std == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(std);
+    @PutMapping("/{id}")
+    public ResponseEntity<Student> updateStudent(@PathVariable Long id, @RequestBody Student student) {
+        return ResponseEntity.ok(studentService.updateStudent(id,student));
     }
 
-    @DeleteMapping("/removeStudent/{studentId}")
-    public ResponseEntity<Void> removeStudent(@PathVariable Long studentId) {
-        studentService.removeStudent(studentId);
-        return ResponseEntity.ok().build();
+    @DeleteMapping("/{studentId}")
+    public ResponseEntity<Student> removeStudent(@PathVariable Long studentId) {
+        return ResponseEntity.ok(studentService.removeStudent(studentId));
     }
-    @GetMapping("getStudentByAge/{studentId}")
-    public ResponseEntity<List<Student>> getStudentByAge(@PathVariable int studentAge) {
-        List<Student> std = studentService.filteringStudentsByAge(studentAge);
+    @GetMapping(params = "studentAge")
+    public ResponseEntity<Collection<Student>> getStudentByAge(@RequestParam int studentAge) {
+        Collection<Student> std = studentService.findByAgeStudent(studentAge);
         return ResponseEntity.ok(std);
     }
+    @GetMapping
+    public ResponseEntity<Collection<Student>> getAll() {
+        return ResponseEntity.ok(studentService.findAllStudent());
+    }
+
+    @GetMapping(params = {"minAge", "maxAge"})
+    public List<Student> findByAgeBetween(@RequestParam int minAge, @RequestParam int maxAge) {
+        return studentService.findByAgeBetween(minAge, maxAge);
+    }
+
+    @GetMapping("/{id}/faculty")
+    public Faculty findFaculty(@PathVariable long id) {
+        return studentService.findFaculty(id);
+    }
+
 }

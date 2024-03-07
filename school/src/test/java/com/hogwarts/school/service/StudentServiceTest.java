@@ -1,94 +1,176 @@
 package com.hogwarts.school.service;
 
+import com.hogwarts.school.exception.FacultyNotFoundException;
+import com.hogwarts.school.exception.StudentNotFoundException;
+
+import com.hogwarts.school.model.Faculty;
 import com.hogwarts.school.model.Student;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import com.hogwarts.school.repositories.FacultyRepository;
+import com.hogwarts.school.repositories.StudentRepository;
+
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
-import java.util.Collection;
+
+import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.when;
 
-
+@ExtendWith(MockitoExtension.class)
 class StudentServiceTest {
-    private final StudentService studentService = new StudentService();
+    @Mock
+    private StudentRepository studentRepository;
+    @Mock
+    private FacultyRepository facultyRepository;
+    @InjectMocks
+    private StudentService studentService;
 
-    @BeforeEach
-    public void beforeEach() {
-        studentService.addStudent(new Student(null,"Гарри", 16));
-        studentService.addStudent(new Student(null,"Рон", 15));
-        studentService.addStudent(new Student(null,"Гермиона", 17));
-        studentService.addStudent(new Student(null,"Драко", 11));
-        studentService.addStudent(new Student(null,"Крэб", 16));
-        studentService.addStudent(new Student(null,"Гоил", 15));
-    }
 
-    @AfterEach
-    public void afterEach() {
-        Collection<Student> students = new ArrayList<>(studentService.findAll());
-        for (Student student : students) {
-            studentService.removeStudent(student.getId());
-        }
-    }
+    private final List<Student> studentList = new ArrayList<>(List.of(
+            new Student(1L, "Гарри", 16),
+            new Student(2L, "Рон", 15),
+            new Student(3L, "Гермиона", 17),
+            new Student(4L, "Драко", 11),
+            new Student(5L, "Крэб", 16),
+            new Student(6L, "Гоил", 15),
+            new Student(7L, "Тонкс", 22),
+            new Student(8L,"Чжоу",16)
+    ));
+
 
     @Test
     void addStudentPositiveTest() {
-        Student expected = new Student(7L,"Полумна", 14);
-        studentService.addStudent(expected);
-        assertThat(studentService.findAll()).contains(expected);
+        Student expected = new Student(7L, "Люпин", 22);
+        when(studentRepository.save(expected)).thenReturn(expected);
+        studentList.add(expected);
+        when(studentRepository.findAll()).thenReturn(studentList);
+        assertThat(studentService.createStudent(expected)).isEqualTo(expected);
+        assertThat(studentService.findAllStudent()).contains(expected);
+    }
+
+    @Test
+    void addStudentNegativeTest() {
+        Student expected = new Student(7L, "Люпин", 22);
+        when(facultyRepository.findById(expected.getFaculty().getId()))
+                .thenThrow(FacultyNotFoundException.class);
+        assertThatThrownBy(()->studentService.createStudent(expected)).isInstanceOf(FacultyNotFoundException.class);
     }
 
     @Test
     void getStudentTest() {
-        Student expected = new Student(7L,"Седрик", 22);
-        studentService.addStudent(expected);
-        assertThat(studentService.findAll()).contains(expected);
-        assertThat(studentService.getStudent(7L)).isEqualTo(expected);
+        Student expected = new Student(7L, "Седрик", 22);
+        when(studentRepository.save(expected)).thenReturn(expected);
+        studentList.add(expected);
+        studentService.createStudent(expected);
+        when(studentRepository.findById(7L)).thenReturn(Optional.of(expected));
+        assertThat(studentService.findStudent(7L)).isEqualTo(expected);
     }
 
     @Test
-    void updateStudentPositiveTest() {
-        Student expected = new Student(7L,"Полумна", 14);
-        Student actual = new Student(7L,"Полумна", 18);
-        studentService.addStudent(expected);
-        assertThat(studentService.findAll()).contains(expected);
-        assertThat(studentService.updateStudent(actual)).isEqualTo(actual);
+    void getStudentNegativeTest() {
+        when(studentRepository.findById(7L)).thenThrow(StudentNotFoundException.class);
+        assertThatThrownBy(() -> studentService.findStudent(7L)).isInstanceOf(StudentNotFoundException.class);
+    }
 
+
+    @Test
+    void updateStudentPositiveTest() {
+        Student expected = new Student(7L, "Полумна", 14);
+        Student actual = new Student(7L, "Полумна", 18);
+        when(studentRepository.save(expected)).thenReturn(expected);
+        assertThat(studentService.createStudent(expected)).isEqualTo(expected);
+        studentList.add(expected);
+        when(studentRepository.findAll()).thenReturn(studentList);
+        assertThat(studentService.findAllStudent()).contains(expected);
+        when(studentRepository.findById(7L)).thenReturn(Optional.of(actual));
+        when(studentRepository.save(actual)).thenReturn(actual);
+        assertThat(studentService.updateStudent(7L, actual)).isEqualTo(actual);
     }
 
     @Test
     void updateStudentNegativeTest() {
-        assertThat(studentService.findAll()).doesNotContain(new Student(7L, "Хагрид", 30));
-        assertThat(studentService.updateStudent(new Student(7L, "Хагрид", 30))).isEqualTo(null);
+        when(studentRepository.findById(7L)).thenThrow(StudentNotFoundException.class);
+        assertThatThrownBy(
+                () -> studentService.updateStudent(7L, new Student(7L, "Полумна", 18)))
+                .isInstanceOf(StudentNotFoundException.class);
     }
 
     @Test
     void removeStudentTest() {
-        Student expected = new Student(7L,"Седрик", 22);
-        studentService.addStudent(expected);
-        assertThat(studentService.findAll()).contains(expected);
-        studentService.removeStudent(expected.getId());
-        assertThat(studentService.findAll()).doesNotContain(expected);
+        Student expected = new Student(7L, "Седрик", 22);
+        studentList.add(expected);
+        when(studentRepository.save(expected)).thenReturn(expected);
+        studentService.createStudent(expected);
+        when(studentRepository.findAll()).thenReturn(studentList);
+        assertThat(studentService.findAllStudent()).contains(expected);
+        when(studentRepository.findById(expected.getId())).thenReturn(Optional.of(expected));
+        assertThat(studentService.removeStudent(expected.getId())).isEqualTo(expected);
+        studentList.remove(expected);
+        assertThat(studentService.findAllStudent()).doesNotContain(expected);
     }
 
     @Test
-    void filteringStudentsByAgeTest() {
-        assertThat(studentService.filteringStudentsByAge(15)).containsExactlyInAnyOrder(
-                new Student(2L, "Рон", 15),
+    void removeStudentNegativeTest() {
+        when(studentRepository.findById(7L)).thenThrow(StudentNotFoundException.class);
+        assertThatThrownBy(() -> studentService.removeStudent(7L)).isInstanceOf(StudentNotFoundException.class);
+    }
+
+    @Test
+    void findByAgeStudent() {
+        when(studentRepository.findByAge(15)).thenReturn(studentList);
+        assertThat(studentService.findByAgeStudent(15)).contains(
                 new Student(6L, "Гоил", 15)
         );
     }
 
     @Test
     void findAllTest() {
-        assertThat(studentService.findAll()).hasSize(6)
+        when(studentRepository.findAll()).thenReturn(studentList);
+        assertThat(studentService.findAllStudent()).hasSize(8)
                 .containsExactlyInAnyOrder(
                         new Student(1L, "Гарри", 16),
                         new Student(2L, "Рон", 15),
                         new Student(3L, "Гермиона", 17),
                         new Student(4L, "Драко", 11),
                         new Student(5L, "Крэб", 16),
-                        new Student(6L, "Гоил", 15));
+                        new Student(6L, "Гоил", 15),
+                        new Student(7L, "Тонкс", 22),
+                        new Student(8L, "Чжоу", 16));
+    }
+
+    @Test
+    void findByAgeBetween() {
+        when(studentRepository.findByAgeBetween(11, 15)).thenReturn(
+                List.of(new Student(4L, "Драко", 11),
+                        new Student(2L, "Рон", 15),
+                        new Student(6L, "Гоил", 15)));
+        assertThat(studentService.findByAgeBetween(11, 15)).hasSize(3).containsExactlyInAnyOrder(
+                new Student(4L, "Драко", 11),
+                new Student(2L, "Рон", 15),
+                new Student(6L, "Гоил", 15)
+        );
+    }
+
+    @Test
+    void findFaculty() {
+        Student expected = new Student(7L, "Седрик", 22);
+        when(studentRepository.save(expected)).thenReturn(expected);
+        studentList.add(expected);
+        studentService.createStudent(expected);
+        when(studentRepository.findById(7L)).thenReturn(Optional.of(expected));
+        assertThat(studentService.findFaculty(7L)).isEqualTo(expected.getFaculty());
+    }
+
+    @Test
+    void findFacultyNegativeTest() {
+        when(studentRepository.findById(7L)).thenThrow(StudentNotFoundException.class);
+        assertThatThrownBy(() -> studentService.findFaculty(7L)).isInstanceOf(StudentNotFoundException.class);
     }
 }
