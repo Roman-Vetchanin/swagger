@@ -35,20 +35,21 @@ public class AvatarService {
         this.avatarRepository = avatarRepository;
         this.studentService = studentService;
     }
-@PostConstruct
+
+    @PostConstruct
     public void init() {
-    try {
-        if (!Files.exists(avatarsDir) || !Files.isDirectory(avatarsDir)) {
-            Files.createDirectories(avatarsDir);
+        try {
+            if (!Files.exists(avatarsDir) && Files.isDirectory(avatarsDir)) {
+                Files.createDirectories(avatarsDir);
+            }
+        } catch (IOException e) {
+            throw new AvatarProcessingException();
         }
-    } catch (IOException e) {
-        throw new AvatarProcessingException();
-    }
 
     }
 
     @Transactional
-    public void uploadAvatar(Long studentId, MultipartFile avatarFile) throws IOException {
+    public void uploadAvatar(Long studentId, MultipartFile avatarFile) {
         try {
             Student student = studentService.findStudent(studentId);
             byte[] data = avatarFile.getBytes();

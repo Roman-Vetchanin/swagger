@@ -46,10 +46,6 @@ class FacultyControllerTestRestTemplateTest {
 
     @AfterEach
     public void afterEach() {
-        //я закомментировал эту строку, потому что
-        // - org.springframework.dao.DataIntegrityViolationException:
-        // could not execute statement [Нарушение ссылочной целостности: "FKJY3UTTPWFPB0S83E2PVPATG9J:
-        // PUBLIC.STUDENTS FOREIGN KEY(FACULTY_ID) REFERENCES PUBLIC.FACULTIES(ID) (CAST(1 AS BIGINT))"
         students.clear();
         facultyList.clear();
         studentRepository.deleteAll();

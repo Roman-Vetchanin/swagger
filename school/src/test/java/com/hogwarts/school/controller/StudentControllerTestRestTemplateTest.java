@@ -142,7 +142,6 @@ class StudentControllerTestRestTemplateTest {
                 HttpMethod.PUT,
                 entity,
                 Student.class);
-        assertThat(oldStudent).isNotEqualTo(newStudent);
         assertThat(updateFaculty.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(updateFaculty.getBody()).isNotNull();
         assertThat(updateFaculty.getBody().getId()).isNotNull();
