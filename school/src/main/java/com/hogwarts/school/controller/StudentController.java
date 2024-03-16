@@ -31,18 +31,20 @@ public class StudentController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Student> updateStudent(@PathVariable Long id, @RequestBody Student student) {
-        return ResponseEntity.ok(studentService.updateStudent(id,student));
+        return ResponseEntity.ok(studentService.updateStudent(id, student));
     }
 
     @DeleteMapping("/{studentId}")
     public ResponseEntity<Student> removeStudent(@PathVariable Long studentId) {
         return ResponseEntity.ok(studentService.removeStudent(studentId));
     }
+
     @GetMapping(params = "studentAge")
     public ResponseEntity<Collection<Student>> getStudentByAge(@RequestParam int studentAge) {
         Collection<Student> std = studentService.findByAgeStudent(studentAge);
         return ResponseEntity.ok(std);
     }
+
     @GetMapping
     public ResponseEntity<Collection<Student>> getAll() {
         return ResponseEntity.ok(studentService.findAllStudent());
@@ -56,6 +58,21 @@ public class StudentController {
     @GetMapping("/{id}/faculty")
     public Faculty findFaculty(@PathVariable long id) {
         return studentService.findFaculty(id);
+    }
+
+    @GetMapping("/getAmountStudents")
+    public ResponseEntity<Integer> getAmountStudent() {
+        return ResponseEntity.ok(studentService.getAmountStudents());
+    }
+
+    @GetMapping("/getAverageAge")
+    public ResponseEntity<Double> getAverageAge() {
+        return ResponseEntity.ok(studentService.getAverageAge());
+    }
+
+    @GetMapping("/lastFiveRecords")
+    public ResponseEntity<List<Student>> getLastThreeRecords() {
+        return ResponseEntity.ok(studentService.getLastFiveRecords());
     }
 
 }

@@ -128,7 +128,6 @@ class FacultyControllerTestRestTemplateTest {
         assertThat(getFacultyFromDb.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
-    //Отдельно этот тест проходит, но в общем старте валится, не могу понять почему
     @Test
     void updateFacultyPositiveTest() {
         Faculty faculty = facultyList.get(faker.random().nextInt(facultyList.size()));

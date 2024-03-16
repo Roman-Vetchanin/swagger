@@ -76,4 +76,16 @@ public class StudentService {
             student.setFaculty(fcl);
         }
     }
+
+    public Integer getAmountStudents() {
+        return studentRepository.getAmountStudent();
+    }
+
+    public Double getAverageAge() {
+        return studentRepository.getAverageAge();
+    }
+
+    public List<Student> getLastFiveRecords() {
+        return studentRepository.getLastFiveRecords();
+    }
 }
