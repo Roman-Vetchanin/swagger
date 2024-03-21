@@ -18,10 +18,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -278,5 +275,50 @@ class StudentControllerTestRestTemplateTest {
                 , Map.of("id", -1));
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    void getAmountStudent() {
+        ResponseEntity<Integer> responseEntity = testRestTemplate.getForEntity(buildUrl("/student/getAmountStudents"), Integer.class);
+        Integer actual = responseEntity.getBody();
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(actual).isEqualTo(10);
+    }
+    @Test
+    void getAverageAge() {
+        Double avg = students.stream().collect(Collectors.averagingDouble(Student::getAge));
+        ResponseEntity<Double> responseEntity = testRestTemplate.getForEntity(buildUrl("/student/getAverageAge"), Double.class);
+        Double actual = responseEntity.getBody();
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(actual).isEqualTo(avg);
+    }
+
+    @Test
+    void getLastFiveRecords() {
+        //java.lang.ClassCastException: class com.hogwarts.school.model.
+        // Student cannot be cast to class java.lang.Comparable
+        // com.hogwarts.school.model.Student is in unnamed module of loader 'app';
+        // java.lang.Comparable is in module java.base of loader 'bootstrap')
+        //компилятор ругается на такую конструкцию, не могу понять почему.
+//        List<Student> student = students.stream().sorted(Collections.reverseOrder()).limit(5).toList();
+
+
+//        а с этой конструкцией все норм...
+        List<Student> student = new ArrayList<>();
+        for (int i = students.size() - 1; i >= 5; i--) {
+            student.add(students.get(i));
+        }
+
+        ResponseEntity<List<Student>> responseEntity = testRestTemplate.exchange(buildUrl("/student/lastFiveRecords"), HttpMethod.GET
+                , null
+                , new ParameterizedTypeReference<>() {
+                });
+        List<Student> actual = responseEntity.getBody();
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(actual).hasSize(5)
+                .usingRecursiveComparison()
+                .ignoringCollectionOrder()
+                .ignoringFields("id")
+                .isEqualTo(student);
     }
 }

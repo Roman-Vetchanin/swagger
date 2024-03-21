@@ -1,7 +1,9 @@
 package com.hogwarts.school.service;
 
+import com.hogwarts.school.dto.AvatarDto;
 import com.hogwarts.school.exception.AvatarNotFoundException;
 import com.hogwarts.school.exception.AvatarProcessingException;
+import com.hogwarts.school.mapper.AvatarMapper;
 import com.hogwarts.school.model.Avatar;
 import com.hogwarts.school.model.Student;
 
@@ -9,6 +11,7 @@ import com.hogwarts.school.repositories.AvatarRepository;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +23,9 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -30,10 +35,13 @@ public class AvatarService {
     private final AvatarRepository avatarRepository;
     private final StudentService studentService;
 
-    public AvatarService(@Value("${path.to.avatars.folder}") String avatarsDir, AvatarRepository avatarRepository, StudentService studentService) {
+    private final AvatarMapper avatarMapper;
+
+    public AvatarService(@Value("${path.to.avatars.folder}") String avatarsDir, AvatarRepository avatarRepository, StudentService studentService, AvatarMapper avatarMapper) {
         this.avatarsDir = Paths.get(avatarsDir);
         this.avatarRepository = avatarRepository;
         this.studentService = studentService;
+        this.avatarMapper = avatarMapper;
     }
 
     @PostConstruct
@@ -89,5 +97,17 @@ public class AvatarService {
             throw new AvatarProcessingException();
         }
 
+    }
+
+    @Transactional(readOnly = true)
+    public List<Avatar> findAllAvatar(Integer pageNumber, Integer pageSize) {
+        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
+        return avatarRepository.findAll(pageRequest).getContent();
+    }
+
+    public List<AvatarDto> getAvatars(int page, int size) {
+        return avatarRepository.findAll(PageRequest.of(page-1, size))
+                .get().map(avatarMapper::toDto)
+                .collect(Collectors.toList());
     }
 }
