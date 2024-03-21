@@ -14,7 +14,7 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
     List<Student> findByFaculty_Id(long id);
 
-    @Query(value = "SELECT COUNT(*)FROM students", nativeQuery = true)
+    @Query(value = "SELECT COUNT(*) FROM students", nativeQuery = true)
     Integer getAmountStudent();
 
     @Query(value = "select AVG(age) from students", nativeQuery = true)

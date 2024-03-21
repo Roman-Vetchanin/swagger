@@ -300,10 +300,10 @@ class StudentControllerTestRestTemplateTest {
         // com.hogwarts.school.model.Student is in unnamed module of loader 'app';
         // java.lang.Comparable is in module java.base of loader 'bootstrap')
         //компилятор ругается на такую конструкцию, не могу понять почему.
-        //List<Student> student = students.stream().sorted(Collections.reverseOrder()).limit(5).toList();
+//        List<Student> student = students.stream().sorted(Collections.reverseOrder()).limit(5).toList();
 
 
-        //а с этой конструкцией все норм...
+//        а с этой конструкцией все норм...
         List<Student> student = new ArrayList<>();
         for (int i = students.size() - 1; i >= 5; i--) {
             student.add(students.get(i));
