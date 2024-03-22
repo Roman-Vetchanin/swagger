@@ -71,4 +71,13 @@ public class Student {
         return Objects.hash(id, name, age);
     }
 
+    @Override
+    public String toString() {
+        return "Student{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", age=" + age +
+                ", faculty=" + faculty +
+                '}';
+    }
 }
