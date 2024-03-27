@@ -10,6 +10,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
+
+import static java.util.Comparator.comparingInt;
 
 
 @Service
@@ -84,6 +87,10 @@ public class FacultyService {
         logger.debug("Students id {} entered",id);
         logger.info("Was invoked method for find Students");
         return studentRepository.findByFaculty_Id(faculty.getId());
+    }
+
+    public List<Faculty> longestFacultyName() {
+        return facultyRepository.findAll().stream().max(Comparator.comparing(faculty -> faculty.getName().length())).stream().toList();
     }
 
 }

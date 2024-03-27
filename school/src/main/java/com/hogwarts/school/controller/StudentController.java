@@ -75,4 +75,18 @@ public class StudentController {
         return ResponseEntity.ok(studentService.getLastFiveRecords());
     }
 
+    @GetMapping("/findStudentNameByFirstLetter/{latter}")
+    public ResponseEntity<List<Student>> findStudentNameByFirstLetter(String latter) {
+        return ResponseEntity.ok(studentService.findStudentNameByFirstLetter(latter));
+    }
+
+    @GetMapping("/getAvgAge")
+    public ResponseEntity<Double> avgAge() {
+        return ResponseEntity.ok(studentService.averageAge());
+    }
+
+    @GetMapping("/calc")
+    public ResponseEntity<String> calculate() {
+        return ResponseEntity.ok(studentService.calculate());
+    }
 }
