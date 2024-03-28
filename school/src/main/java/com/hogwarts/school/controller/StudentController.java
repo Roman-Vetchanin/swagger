@@ -76,7 +76,7 @@ public class StudentController {
     }
 
     @GetMapping("/findStudentNameByFirstLetter/{latter}")
-    public ResponseEntity<List<Student>> findStudentNameByFirstLetter(String latter) {
+    public ResponseEntity<List<Student>> findStudentNameByFirstLetter(@RequestParam String latter) {
         return ResponseEntity.ok(studentService.findStudentNameByFirstLetter(latter));
     }
 
@@ -88,5 +88,15 @@ public class StudentController {
     @GetMapping("/calc")
     public ResponseEntity<String> calculate() {
         return ResponseEntity.ok(studentService.calculate());
+    }
+
+    @GetMapping("/print-parallel")
+    public ResponseEntity<List<Student>> printParallel() {
+        return ResponseEntity.ok(studentService.printParallel());
+    }
+
+    @GetMapping("/print-synchronized/")
+    public ResponseEntity<List<Student>> printSynchronized() {
+        return ResponseEntity.ok(studentService.printSynchronized());
     }
 }

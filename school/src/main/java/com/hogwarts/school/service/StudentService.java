@@ -142,4 +142,59 @@ public class StudentService {
         long time = stop - start;
         return "Решение " + sum + ", время = " + time;
     }
+    //не исключаю что я не верно понял ДЗ и нагородил какую то чушь...
+
+    public List<Student> printParallel() {
+        List<Student> students = studentRepository.findAll();
+        List<Student> studentInThread = new ArrayList<>();
+        System.out.println(students.get(0));
+        studentInThread.add(students.get(0));
+        System.out.println(students.get(1));
+        studentInThread.add(students.get(1));
+        new Thread(()->{
+            System.out.println(students.get(2));
+            studentInThread.add(students.get(2));
+            System.out.println(students.get(3));
+            studentInThread.add(students.get(3));
+        }).start();
+        new Thread(()->{
+            System.out.println(students.get(4));
+            studentInThread.add(students.get(4));
+            System.out.println(students.get(5));
+            studentInThread.add(students.get(5));
+        }).start();
+        return studentInThread;
+    }
+
+    final Object flag = new Object();
+
+    private Student getNameStudents(int index) {
+        List<Student> studentList = studentRepository.findAll().stream().toList();
+        synchronized (flag) {
+            System.out.println(studentList.get(index));
+            return studentList.get(index);
+       }
+    }
+
+    public List<Student> printSynchronized() {
+        List<Student> studentName = new ArrayList<>();
+        getNameStudents(1);
+        studentName.add(getNameStudents(1));
+        getNameStudents(2);
+        studentName.add(getNameStudents(2));
+        new Thread(()->{
+            getNameStudents(3);
+            studentName.add(getNameStudents(3));
+            getNameStudents(4);
+            studentName.add(getNameStudents(4));
+        }).start();
+        new Thread(()->{
+            getNameStudents(5);
+            studentName.add(getNameStudents(5));
+            getNameStudents(6);
+            studentName.add(getNameStudents(6));
+        }).start();
+        return studentName;
+    }
+
 }
