@@ -10,6 +10,8 @@ import com.hogwarts.school.model.Student;
 import com.hogwarts.school.repositories.AvatarRepository;
 
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.util.Pair;
@@ -31,13 +33,18 @@ import java.util.stream.Collectors;
 @Service
 public class AvatarService {
 
+    Logger logger = LoggerFactory.getLogger(AvatarService.class);
+
     private final Path avatarsDir;
     private final AvatarRepository avatarRepository;
     private final StudentService studentService;
 
     private final AvatarMapper avatarMapper;
 
-    public AvatarService(@Value("${path.to.avatars.folder}") String avatarsDir, AvatarRepository avatarRepository, StudentService studentService, AvatarMapper avatarMapper) {
+    public AvatarService(@Value("${path.to.avatars.folder}") String avatarsDir,
+                         AvatarRepository avatarRepository,
+                         StudentService studentService,
+                         AvatarMapper avatarMapper) {
         this.avatarsDir = Paths.get(avatarsDir);
         this.avatarRepository = avatarRepository;
         this.studentService = studentService;
@@ -58,6 +65,7 @@ public class AvatarService {
 
     @Transactional
     public void uploadAvatar(Long studentId, MultipartFile avatarFile) {
+        logger.info("Was invoked method for upload avatar");
         try {
             Student student = studentService.findStudent(studentId);
             byte[] data = avatarFile.getBytes();
@@ -66,6 +74,8 @@ public class AvatarService {
             String fileName = String.format("%s%s", UUID.randomUUID(), extension);
             Path path = avatarsDir.resolve(fileName);
             Files.write(path, data);
+
+            logger.debug("Path to save avatar in FS {}",path);
 
             Avatar avatar = new Avatar();
             avatar.setStudent(student);
@@ -76,36 +86,42 @@ public class AvatarService {
 
             avatarRepository.save(avatar);
         } catch (IOException e) {
+            logger.error("An I/O exception occurred");
             throw new AvatarProcessingException();
         }
-
     }
 
     @Transactional(readOnly = true)
     public Pair<byte[], String> getAvatarFromDb(Long studentId) {
-        Avatar avatar = avatarRepository.findByStudentId(studentId).orElseThrow(AvatarNotFoundException::new);
+        Avatar avatar = avatarRepository.findByStudentId(studentId).orElseThrow(null);
+        if (avatar == null) {
+            logger.error("Avatar not found");
+            throw new AvatarNotFoundException();
+        }
+        logger.info("Was invoked method for get Avatar From Db");
         return Pair.of(avatar.getData(), avatar.getMediaType());
     }
 
     @Transactional(readOnly = true)
     public Pair<byte[], String> getAvatarFormFs(Long studentId) {
-        Avatar avatar = avatarRepository.findByStudentId(studentId).orElseThrow(AvatarNotFoundException::new);
+        logger.debug("Student id {} entered",studentId);
+        Avatar avatar = avatarRepository.findByStudentId(studentId).orElseThrow(null);
+        if (avatar == null) {
+            logger.error("Avatar not found");
+            throw new AvatarNotFoundException();
+        }
+        logger.info("Was invoked method for get Avatar Form Fs");
         try {
             byte[] data = Files.readAllBytes(Paths.get(avatar.getFilePath()));
             return Pair.of(data, avatar.getMediaType());
         } catch (IOException e) {
             throw new AvatarProcessingException();
         }
-
-    }
-
-    @Transactional(readOnly = true)
-    public List<Avatar> findAllAvatar(Integer pageNumber, Integer pageSize) {
-        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
-        return avatarRepository.findAll(pageRequest).getContent();
     }
 
     public List<AvatarDto> getAvatars(int page, int size) {
+        logger.info("Was invoked method for get Avatar Form Fs");
+        logger.debug("Pagination used: pages {}, size {}", page,size);
         return avatarRepository.findAll(PageRequest.of(page-1, size))
                 .get().map(avatarMapper::toDto)
                 .collect(Collectors.toList());
