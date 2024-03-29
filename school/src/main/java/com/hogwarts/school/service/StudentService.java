@@ -121,10 +121,11 @@ public class StudentService {
         return studentRepository.getLastFiveRecords();
     }
 
-    public List<Student> findStudentNameByFirstLetter(String letter) {
-        return studentRepository.findAll().stream().peek(student -> student.setName(student.getName().toUpperCase()))
+    public List<String> findStudentNameByFirstLetter(String letter) {
+        return studentRepository.findAll().stream()
                 .filter(student -> student.getName().startsWith(letter))
-                .sorted(Comparator.comparing(Student::getName))
+                .map(student -> student.getName().toUpperCase())
+                .sorted()
                 .collect(Collectors.toList());
     }
 
@@ -137,64 +138,43 @@ public class StudentService {
 
     public String calculate() {
         Long start = System.currentTimeMillis();
-        int sum = IntStream.iterate(1, a -> a + 1).limit(1_000_000).reduce(0, Integer::sum);
+        int sum = IntStream.range(1, 1_000_000).sum();
         Long stop = System.currentTimeMillis();
         long time = stop - start;
-        return "Решение " + sum + ", время = " + time;
+        return "Решение " + sum + ", время = " + time + " мс";
     }
     //не исключаю что я не верно понял ДЗ и нагородил какую то чушь...
 
-    public List<Student> printParallel() {
-        List<Student> students = studentRepository.findAll();
-        List<Student> studentInThread = new ArrayList<>();
-        System.out.println(students.get(0));
-        studentInThread.add(students.get(0));
-        System.out.println(students.get(1));
-        studentInThread.add(students.get(1));
-        new Thread(()->{
-            System.out.println(students.get(2));
-            studentInThread.add(students.get(2));
-            System.out.println(students.get(3));
-            studentInThread.add(students.get(3));
+    public void printParallel() {
+        List<Student> students = studentRepository.findAll().stream().limit(6).toList();
+        logger.info(String.valueOf(students.get(0)));
+        logger.info(String.valueOf(students.get(1)));
+        new Thread(() -> {
+            logger.info(String.valueOf(students.get(2)));
+            logger.info(String.valueOf(students.get(3)));
         }).start();
-        new Thread(()->{
-            System.out.println(students.get(4));
-            studentInThread.add(students.get(4));
-            System.out.println(students.get(5));
-            studentInThread.add(students.get(5));
+        new Thread(() -> {
+            logger.info(String.valueOf(students.get(4)));
+            logger.info(String.valueOf(students.get(5)));
         }).start();
-        return studentInThread;
     }
 
-    final Object flag = new Object();
-
-    private Student getNameStudents(int index) {
-        List<Student> studentList = studentRepository.findAll().stream().toList();
-        synchronized (flag) {
-            System.out.println(studentList.get(index));
-            return studentList.get(index);
-       }
+    private synchronized void getNameStudents(int index) {
+        List<Student> studentList = studentRepository.findAll().stream().limit(6).toList();
+        logger.info(String.valueOf(studentList.get(index)));
     }
 
-    public List<Student> printSynchronized() {
-        List<Student> studentName = new ArrayList<>();
+    public void printSynchronized() {
+        getNameStudents(0);
         getNameStudents(1);
-        studentName.add(getNameStudents(1));
-        getNameStudents(2);
-        studentName.add(getNameStudents(2));
-        new Thread(()->{
+        new Thread(() -> {
+            getNameStudents(2);
             getNameStudents(3);
-            studentName.add(getNameStudents(3));
+        }).start();
+        new Thread(() -> {
             getNameStudents(4);
-            studentName.add(getNameStudents(4));
-        }).start();
-        new Thread(()->{
             getNameStudents(5);
-            studentName.add(getNameStudents(5));
-            getNameStudents(6);
-            studentName.add(getNameStudents(6));
         }).start();
-        return studentName;
     }
 
 }

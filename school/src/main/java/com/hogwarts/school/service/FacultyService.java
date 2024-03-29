@@ -89,8 +89,10 @@ public class FacultyService {
         return studentRepository.findByFaculty_Id(faculty.getId());
     }
 
-    public List<Faculty> longestFacultyName() {
-        return facultyRepository.findAll().stream().max(Comparator.comparing(faculty -> faculty.getName().length())).stream().toList();
+    public Faculty longestFacultyName() {
+        return facultyRepository.findAll().stream()
+                .max(Comparator.comparing(faculty -> faculty.getName().length()))
+                .orElseThrow(FacultyNotFoundException::new);
     }
 
 }
