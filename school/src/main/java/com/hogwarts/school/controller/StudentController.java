@@ -75,4 +75,28 @@ public class StudentController {
         return ResponseEntity.ok(studentService.getLastFiveRecords());
     }
 
+    @GetMapping("/findStudentNameByFirstLetter/{latter}")
+    public ResponseEntity<List<String>> findStudentNameByFirstLetter(@RequestParam String latter) {
+        return ResponseEntity.ok(studentService.findStudentNameByFirstLetter(latter));
+    }
+
+    @GetMapping("/getAvgAge")
+    public ResponseEntity<Double> avgAge() {
+        return ResponseEntity.ok(studentService.averageAge());
+    }
+
+    @GetMapping("/calc")
+    public ResponseEntity<String> calculate() {
+        return ResponseEntity.ok(studentService.calculate());
+    }
+
+    @GetMapping("/print-parallel")
+    public void printParallel() {
+        studentService.printParallel();
+    }
+
+    @GetMapping("/print-synchronized/")
+    public void printSynchronized() {
+        studentService.printSynchronized();
+    }
 }
